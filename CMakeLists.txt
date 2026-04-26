@@ -10,6 +10,8 @@ add_subdirectory(libs/glfw)
 
 include_directories(libs/glm)
 include_directories(libs/stb)
+include_directories(libs/ImGui)
+include_directories(libs/ImGui/backends)
 
 add_subdirectory(Source/)
 

@@ -17,6 +17,12 @@
 
 #include "ExampleObjects/Plane.h"
 
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
+#include <glm/gtc/type_ptr.hpp>
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 App::App()
@@ -50,12 +56,23 @@ App::App()
 
 	glfwSetFramebufferSizeCallback(m_Window, framebuffer_size_callback);
 
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
 
+	ImGui::StyleColorsDark(); // or Light(), Classic()
 
+	ImGui_ImplGlfw_InitForOpenGL(m_Window, true); // true = install GLFW callbacks
+	ImGui_ImplOpenGL3_Init("#version 330");
+	
 }
 
 App::~App()
 {
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+
 	glfwDestroyWindow(m_Window);
 	glfwTerminate();
 }
@@ -98,29 +115,59 @@ void App::Run()
 	glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_CULL_FACE);
 
-	Plane WaterPlane = Plane(256,256);
-	WaterPlane.SetScale(10.0f);
+	Plane WaterPlane = Plane(100,100);
+	WaterPlane.SetScale(0.125f);
 	
 
 	PerspectiveCamera camera;
 
+	float waveAmplitude = 2.5f;
+	float waveFrequency = 5.0f;
+	float waveLength = 250.0f;
+	glm::vec2 waveDirection = glm::vec2(0.0f);
 	double lastTime = glfwGetTime();
+
+	bool MouseLocked = true;
 
 	while (!glfwWindowShouldClose(m_Window) && !glfwGetKey(m_Window,GLFW_KEY_ESCAPE))
 	{
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		
+		ImGui::Begin("Water Settings");
+		ImGui::SliderFloat("Amplitude", &waveAmplitude, 0.0f, 10.0f);
+		ImGui::SliderFloat("Frequency", &waveFrequency, 0.0f, 25.0f);
+		ImGui::SliderFloat("Length", &waveLength, 5.0f, 500.0f);
+		ImGui::SliderFloat2("Wave Direction", glm::value_ptr(waveDirection), 0.0, 1.0);
+		ImGui::End();
+
 		double currentTime = glfwGetTime();
 		float dt = static_cast<float>(currentTime - lastTime);
 		lastTime = currentTime;
 
-		camera.ProcessInputs(m_Window,dt);
+		if(MouseLocked)
+			camera.ProcessInputs(m_Window,dt);
+
+		if (glfwGetKey(m_Window, GLFW_KEY_1))
+		{
+			glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			MouseLocked = false;
+		}
+		if (glfwGetKey(m_Window, GLFW_KEY_2))
+		{
+			glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			MouseLocked = true;
+		}
+
 		glClearColor(0.0f, 0.0f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		CubeShader->Use();
-		CubeShader->setMat4x4("ViewMatrix", camera.GetViewMatrix());
-		CubeShader->setMat4x4("ProjectionMatrix", camera.GetProjectionMatrix());
-		cube.Rotate({ 0.0f, dt*50, 0.0f });
-		cube.Draw();
+		//CubeShader->Use();
+		//CubeShader->setMat4x4("ViewMatrix", camera.GetViewMatrix());
+		//CubeShader->setMat4x4("ProjectionMatrix", camera.GetProjectionMatrix());
+		//cube.Rotate({ 0.0f, dt*50, 0.0f });
+		//cube.Draw();
 		//cubefloor.Draw();
 
 		WaterShader.Use();
@@ -128,8 +175,18 @@ void App::Run()
 		WaterShader.setMat4x4("ProjectionMatrix", camera.GetProjectionMatrix());
 		WaterShader.setMat4x4("ModelMatrix", WaterPlane.GetModelMatrix());
 		WaterShader.setFloat("u_Time", currentTime);
+		WaterShader.setFloat("u_WaveAmplitude", waveAmplitude);
+		WaterShader.setFloat("u_WaveFrequency", waveFrequency);
+		WaterShader.setFloat("u_WaveLength", waveLength);
+		WaterShader.setVector2("u_WaveDirection", waveDirection);
+
 
 		WaterPlane.Draw();
+		
+
+
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		glfwSwapBuffers(m_Window);
 		glfwPollEvents();

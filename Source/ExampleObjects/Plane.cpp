@@ -76,7 +76,7 @@ void Plane::Draw()
 
 void Plane::SetScale(float Scale)
 {
-	m_ModelMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(Scale,1.0f,Scale));
+	m_ModelMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(Scale));
 }
 
 void GeneratePlaneVertices(std::vector<unsigned int>& indices, std::vector<PlaneVertex>& vertices, const glm::ivec2 resolution)
@@ -95,9 +95,9 @@ void GeneratePlaneVertices(std::vector<unsigned int>& indices, std::vector<Plane
 			PlaneVertex v;
 
 			v.Position = glm::vec3(
-				static_cast<float>(x) / (resolution.x-1),
+				static_cast<float>(x),// / (resolution.x-1),
 				0.0f,
-				static_cast<float>(y) / (resolution.y-1)
+				static_cast<float>(y)// / (resolution.y-1)
 			);
 			vertices[idx] = v;
 
