@@ -124,7 +124,13 @@ void App::Run()
 	float waveAmplitude = 2.5f;
 	float waveFrequency = 5.0f;
 	float waveLength = 250.0f;
-	glm::vec2 waveDirection = glm::vec2(0.0f);
+	glm::vec2 waveDirection = glm::vec2(0.f);
+
+	float waveAmplitude2 = 2.5f;
+	float waveFrequency2 = 5.0f;
+	float waveLength2 = 250.0f;
+	glm::vec2 waveDirection2 = glm::vec2(0.0f);
+
 	double lastTime = glfwGetTime();
 
 	bool MouseLocked = true;
@@ -139,7 +145,12 @@ void App::Run()
 		ImGui::SliderFloat("Amplitude", &waveAmplitude, 0.0f, 10.0f);
 		ImGui::SliderFloat("Frequency", &waveFrequency, 0.0f, 25.0f);
 		ImGui::SliderFloat("Length", &waveLength, 5.0f, 500.0f);
-		ImGui::SliderFloat2("Wave Direction", glm::value_ptr(waveDirection), 0.0, 1.0);
+		ImGui::SliderFloat2("Wave Direction", glm::value_ptr(waveDirection), -1.0, 1.0);
+
+		ImGui::SliderFloat("Amplitude2", &waveAmplitude2, 0.0f, 10.0f);
+		ImGui::SliderFloat("Frequency2", &waveFrequency2, 0.0f, 25.0f);
+		ImGui::SliderFloat("Length2", &waveLength2, 5.0f, 500.0f);
+		ImGui::SliderFloat2("Wave Direction2", glm::value_ptr(waveDirection2), -1.0, 1.0);
 		ImGui::End();
 
 		double currentTime = glfwGetTime();
@@ -180,9 +191,12 @@ void App::Run()
 		WaterShader.setFloat("u_WaveLength", waveLength);
 		WaterShader.setVector2("u_WaveDirection", waveDirection);
 
+		WaterShader.setFloat("u_WaveAmplitude2", waveAmplitude2);
+		WaterShader.setFloat("u_WaveFrequency2", waveFrequency2);
+		WaterShader.setFloat("u_WaveLength2", waveLength2);
+		WaterShader.setVector2("u_WaveDirection2", waveDirection2);
 
 		WaterPlane.Draw();
-		
 
 
 		ImGui::Render();
