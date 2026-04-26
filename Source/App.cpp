@@ -15,6 +15,7 @@
 
 #include "ExampleObjects/CubeObject.h"
 
+#include "ExampleObjects/Plane.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
@@ -27,7 +28,7 @@ App::App()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	
-	m_Window = glfwCreateWindow(m_WindowSize.x, m_WindowSize.y, "OpenGL-Template", NULL, NULL);
+	m_Window = glfwCreateWindow(m_WindowSize.x, m_WindowSize.y, "opengl-water", NULL, NULL);
 	if (m_Window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -76,6 +77,7 @@ void App::Run()
 
 	std::shared_ptr<Shader> CubeShader = std::make_shared<Shader>("Shaders/cube.vert", "Shaders/cube.frag");
 	std::shared_ptr<Texture2D> CubeTexture = std::make_shared<Texture2D>("Textures/wall.jpg");
+	Shader WaterShader("Shaders/WaterShader.vert", "Shaders/WaterShader.frag");
 
 	CubeObject cube;
 
@@ -94,7 +96,11 @@ void App::Run()
 	cubefloor.SetScale(glm::vec3(15.0f, 1.0f, 15.0f));
 
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
+
+	Plane WaterPlane = Plane(256,256);
+	WaterPlane.SetScale(10.0f);
+	
 
 	PerspectiveCamera camera;
 
@@ -110,12 +116,20 @@ void App::Run()
 		glClearColor(0.0f, 0.0f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
+		CubeShader->Use();
 		CubeShader->setMat4x4("ViewMatrix", camera.GetViewMatrix());
 		CubeShader->setMat4x4("ProjectionMatrix", camera.GetProjectionMatrix());
-		
 		cube.Rotate({ 0.0f, dt*50, 0.0f });
 		cube.Draw();
-		cubefloor.Draw();
+		//cubefloor.Draw();
+
+		WaterShader.Use();
+		WaterShader.setMat4x4("ViewMatrix", camera.GetViewMatrix());
+		WaterShader.setMat4x4("ProjectionMatrix", camera.GetProjectionMatrix());
+		WaterShader.setMat4x4("ModelMatrix", WaterPlane.GetModelMatrix());
+		WaterShader.setFloat("u_Time", currentTime);
+
+		WaterPlane.Draw();
 
 		glfwSwapBuffers(m_Window);
 		glfwPollEvents();

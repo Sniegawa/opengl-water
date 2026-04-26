@@ -11,7 +11,7 @@ add_executable(templateApp
 	"OpenGLObjects/VBO.h" 
 	"OpenGLObjects/VBO.cpp" 
 	"OpenGLObjects/Shader.h" 
-	"OpenGLObjects/Shader.cpp" "OpenGLObjects/EBO.h" "OpenGLObjects/EBO.cpp" "OpenGLObjects/Texture2D.cpp" "ExampleObjects/CubeObject.h" "ExampleObjects/CubeObject.cpp" "OpenGLObjects/Camera.h" "OpenGLObjects/Camera.cpp")
+	"OpenGLObjects/Shader.cpp" "OpenGLObjects/EBO.h" "OpenGLObjects/EBO.cpp" "OpenGLObjects/Texture2D.cpp" "ExampleObjects/CubeObject.h" "ExampleObjects/CubeObject.cpp" "OpenGLObjects/Camera.h" "OpenGLObjects/Camera.cpp" "ExampleObjects/Plane.h" "ExampleObjects/Plane.cpp")
 
 
 target_link_libraries(templateApp PUBLIC
