@@ -135,20 +135,20 @@ void App::Run()
 	glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_CULL_FACE);
 	 
-	Plane WaterPlane = Plane(1000,1000);
-	WaterPlane.SetScale(0.125f);
-	//WaterPlane.SetPosition(glm::vec3(0, 0.0f, -750.0f)); 
-	  
+	Plane WaterPlane = Plane(2000,2000);
+	WaterPlane.SetScale(0.05f);
+	WaterPlane.SetPosition(glm::vec3(-50.0f, 0.0f, -50.0f)); 
+	
 	PerspectiveCamera camera;
 
 	std::random_device rd;
 	std::mt19937 rng(rd());
 	std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
-	std::uniform_real_distribution<float> LengthDist(100.0f, 500.0f);
+	std::uniform_real_distribution<float> LengthDist(1000.0f, 1750.0f);
 	std::uniform_real_distribution<float> SpeedDist(1.0f, 25.0f);
 
 	std::vector<Wave> Waves;
-	for(int i = 0; i < 512; ++i)
+	for(int i = 0; i < 64; ++i)
 	{
 		Wave w;
 		w.waveDirection = glm::normalize(glm::vec2(dist(rng), dist(rng)));
@@ -172,13 +172,13 @@ void App::Run()
 	float Shininess = 256;
 	WaterShader.Use();  
 
-	float AmplitudeBase = 1.0f;
-	float AmplitudeMult = 0.83f;
+	float AmplitudeBase = 0.433f;
+	float AmplitudeMult = 0.832f;
 
-	float FrequencyBase = 1.0f;
-	float FrequencyMult = 1.16f;
+	float FrequencyBase = 0.418f;
+	float FrequencyMult = 1.160f;
 
-	glm::vec3 WaterColor = glm::vec3(0.0f, 0.1f, 0.5f);
+	glm::vec3 WaterColor = glm::vec3(14.0f/255, 41.0f/255, 73.0f/255);
 
  	glm::mat4 invWaterModelMatrix = glm::inverse(WaterPlane.GetModelMatrix());
 	WaterShader.setMat4x4("InvModelMatrix", invWaterModelMatrix);   

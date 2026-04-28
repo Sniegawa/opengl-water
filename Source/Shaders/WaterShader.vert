@@ -54,21 +54,23 @@ void main()
 		A = u_AmplitudeBase * pow(u_AmplitudeMult,i);
 		W = u_FrequencyBase * pow(u_FrequencyMult,i);
 
+
 		Wave wave = waves[i];
 		float L = wave.Length;
-		float phi = wave.Speed * PI / wave.Length; // Pi here represents speed
+		float k = (2.0 * PI) / L;
+		float phi = sqrt(g*k); // Pi here represents speed
 		vec2 d = normalize(wave.Direction);
 		float t = u_Time;
 		
 		float exponent = sin(dot(d,p.xz) * W + t * phi);
 		float F = A * exp(exponent-1);
 		Pos.y += F;
-
+		float damp = 1.0 / (1.0 + A);
 		LastDerivativeX = W * d.x * F * cos(dot(d,p.xz) * W + t * phi);
 		LastDerivativeZ = W * d.y * F * cos(dot(d,p.xz) * W + t * phi);
 
-		DerivativeX += LastDerivativeX;
-		DerivativeZ += LastDerivativeZ;
+		DerivativeX += LastDerivativeX * damp;
+		DerivativeZ += LastDerivativeZ * damp;
 	}
 
 	vec3 tangent = vec3(1.0,DerivativeX,0.0);
