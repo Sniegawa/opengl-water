@@ -84,3 +84,20 @@ void Texture2D::Unbind() const
 {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
+
+
+void Texture2D::SetData(int w, int h, GLenum internalFormat, GLenum format, GLenum type, const void* data)
+{
+	if (m_ID == 0)
+		glGenTextures(1, &m_ID);
+
+	glBindTexture(GL_TEXTURE_2D, m_ID);
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, w, h, 0, format, type, data);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+}

@@ -14,7 +14,7 @@ public:
 	~Skybox();
 
 	void Draw();
-
+	void BindSkyboxTexture();
 private:
 	void LoadCubemap(const std::array<std::string, 6>& Sides);
 private:

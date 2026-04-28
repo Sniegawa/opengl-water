@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-
+#include <glad/glad.h>
 class Texture2D
 {
 public:
@@ -14,6 +14,10 @@ public:
 	void Bind(unsigned int slot) const;
 	void Unbind() const;
 
+	void SetData(int w, int h, GLenum internalFormat, GLenum format, GLenum type, const void* data);
+
+	//Debug
+	unsigned int GetID() { return m_ID; }
 private:
 	unsigned int m_ID;
 };

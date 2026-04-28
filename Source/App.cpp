@@ -26,18 +26,15 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <array>
+#include <random>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 struct Wave
 {
 	glm::vec2 waveDirection = glm::vec2(-0.2f, 0.2f);
-	float waveSteepness = 0.05f;
-	float waveAmplitude = 5.0f;
 	float waveLength = 250.0f;
-	float _pad1 = 0.0f;
-	float _pad2 = 0.0f;
-	float _pad3 = 0.0f;
+	float waveSpeed = 2.5f;
 };
 
 App::App()
@@ -75,7 +72,7 @@ App::App()
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 
-	ImGui::StyleColorsDark(); // or Light(), Classic()
+	ImGui::StyleColorsDark();
 
 	ImGui_ImplGlfw_InitForOpenGL(m_Window, true); // true = install GLFW callbacks
 	ImGui_ImplOpenGL3_Init("#version 330");
@@ -96,7 +93,7 @@ void App::Run()
 {
 	std::shared_ptr<Shader> CubeShader = std::make_shared<Shader>("Shaders/cube.vert", "Shaders/cube.frag");
 	std::shared_ptr<Texture2D> CubeTexture = std::make_shared<Texture2D>("Textures/wall.jpg");
-	std::shared_ptr<Texture2D> SandTexture = std::make_shared<Texture2D>("Textures/sand.jpg");
+
 	Shader WaterShader("Shaders/WaterShader.vert", "Shaders/WaterShader.frag");
 
 	std::array<std::string, 6> skyboxImages =
@@ -111,7 +108,7 @@ void App::Run()
 
 	std::shared_ptr<Shader> SkyboxShader = std::make_shared<Shader>("Shaders/Skybox.vert", "Shaders/Skybox.frag");
 
-
+	 
 	Skybox sb = Skybox(skyboxImages, SkyboxShader);
 
 	//Plane GroundPlane = Plane(5, 5);
@@ -128,22 +125,37 @@ void App::Run()
 	CubeObject cubefloor;
 
 	cubefloor.SetShader(CubeShader);
-	cubefloor.SetTexture(SandTexture);
+	//cubefloor.SetTexture(CubeTexture);
 
-	cubefloor.SetPosition(glm::vec3(0.0f, -5.0f, 0.0f));
-
+	cubefloor.SetPosition(glm::vec3(0.0f, -50.0f, 0.0f));
+	 
 	cubefloor.SetScale(glm::vec3(150.0f, 1.0f, 150.0f));
+
 
 	glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_CULL_FACE);
-
-	Plane WaterPlane = Plane(100,100);
-	WaterPlane.SetScale(0.25f);
-	
+	 
+	Plane WaterPlane = Plane(1000,1000);
+	WaterPlane.SetScale(0.125f);
+	//WaterPlane.SetPosition(glm::vec3(0, 0.0f, -750.0f)); 
+	  
 	PerspectiveCamera camera;
 
+	std::random_device rd;
+	std::mt19937 rng(rd());
+	std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
+	std::uniform_real_distribution<float> LengthDist(100.0f, 500.0f);
+	std::uniform_real_distribution<float> SpeedDist(1.0f, 25.0f);
+
 	std::vector<Wave> Waves;
-	Waves.resize(2);
+	for(int i = 0; i < 512; ++i)
+	{
+		Wave w;
+		w.waveDirection = glm::normalize(glm::vec2(dist(rng), dist(rng)));
+		w.waveLength = LengthDist(rng);
+		w.waveSpeed = SpeedDist(rng);
+		Waves.push_back(w);
+	}
 
 	SSBO WaterSSBO;
 	WaterSSBO.Upload<Wave>(Waves, GL_DYNAMIC_DRAW);
@@ -152,7 +164,7 @@ void App::Run()
 
 	bool MouseLocked = true;
 
-	glm::vec3 LightDirection = glm::vec3(0.2f, -0.8f, 0.5f);
+	glm::vec3 LightDirection = glm::vec3(0.2f, 0.8f, 0.5f);
 	glm::vec3 AmbientLight = glm::vec3(0.1f);  
 	glm::vec3 DiffuseLight = glm::vec3(0.8f);
 	glm::vec3 SpecularLight = glm::vec3(0.8f);
@@ -160,7 +172,13 @@ void App::Run()
 	float Shininess = 256;
 	WaterShader.Use();  
 
+	float AmplitudeBase = 1.0f;
+	float AmplitudeMult = 0.83f;
 
+	float FrequencyBase = 1.0f;
+	float FrequencyMult = 1.16f;
+
+	glm::vec3 WaterColor = glm::vec3(0.0f, 0.1f, 0.5f);
 
  	glm::mat4 invWaterModelMatrix = glm::inverse(WaterPlane.GetModelMatrix());
 	WaterShader.setMat4x4("InvModelMatrix", invWaterModelMatrix);   
@@ -171,56 +189,18 @@ void App::Run()
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		
-		ImGui::Begin("Water Settings");
-		bool Modified = false;
-		bool SizeChanged = false;
+		ImGui::Begin("Waves");
 
-		if(ImGui::Button("+"))
-		{
-			Waves.push_back(Wave());
-			SizeChanged = true;
-		}
+		ImGui::SliderFloat("AmplitudeBase", &AmplitudeBase,0.001f,1.0f);
+		ImGui::SliderFloat("AmplitudeMult", &AmplitudeMult,0.01f,0.99f);
 
-		ImGui::SameLine();
-		
-		if(ImGui::Button("-"))
-		{
-			if (Waves.size() > 1)
-			{
-				Waves.pop_back();
-				SizeChanged = true;
-			}
-		}
+		ImGui::SliderFloat("FrequencyBase", &FrequencyBase,0.001f,1.0f);
+		ImGui::SliderFloat("FrequencyMult", &FrequencyMult,1.0f,2.0f);
 
-
-		for (size_t i = 0; i < Waves.size(); ++i)
-		{
-
-			std::string Title = "Wave " + std::to_string(i+1);
-			ImGui::PushID(i);
-			if (ImGui::TreeNode(Title.c_str()))
-			{
-				Wave& w = Waves[i];
-				if (ImGui::SliderFloat("waveSteepness", &w.waveSteepness, 0.0f, 1.0f))
-					Modified = true;
-				if(ImGui::SliderFloat("waveAmplitude", &w.waveAmplitude, 1.0f, 10.0f))
-					Modified = true;
-				if(ImGui::SliderFloat("Length", &w.waveLength, 5.0f, 500.0f))
-					Modified = true;
-				if(ImGui::SliderFloat2("Wave Direction", glm::value_ptr(w.waveDirection), -1.0, 1.0))
-					Modified = true;
-
-				ImGui::TreePop();
-			}
-			ImGui::PopID();
-		}
+		ImGui::Spacing();
+		ImGui::ColorPicker3("Water Tint", glm::value_ptr(WaterColor));
 
 		ImGui::End();
-
-		if (Modified)
-			WaterSSBO.Update<Wave>(Waves);
-		else if (SizeChanged)
-			WaterSSBO.Upload<Wave>(Waves);
 
 		ImGui::Begin("Light");
 
@@ -233,6 +213,8 @@ void App::Run()
 		double currentTime = glfwGetTime();
 		float dt = static_cast<float>(currentTime - lastTime);
 		lastTime = currentTime;
+
+		cube.Rotate({ 0.0f, dt * 50, 0.0f });
 
 		if(MouseLocked)
 			camera.ProcessInputs(m_Window,dt);
@@ -251,14 +233,14 @@ void App::Run()
 		glClearColor(0.0f, 0.0f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		CubeShader->Use();
-		CubeShader->setMat4x4("ViewMatrix", camera.GetViewMatrix());
-		CubeShader->setMat4x4("ProjectionMatrix", camera.GetProjectionMatrix());
-		cube.Rotate({ 0.0f, dt*50, 0.0f });
-		cube.Draw();
-		cubefloor.Draw();
+		//CubeShader->Use();
+		//CubeShader->setMat4x4("ViewMatrix", camera.GetViewMatrix());
+		//CubeShader->setMat4x4("ProjectionMatrix", camera.GetProjectionMatrix());
 
-		
+		//cube.Draw();
+		//cubefloor.Draw();
+
+		// ------------- WATER ---------------  
 
 		WaterShader.Use();
 		WaterShader.setMat4x4("ViewMatrix", camera.GetViewMatrix());
@@ -268,17 +250,30 @@ void App::Run()
 		WaterShader.setFloat("u_Time", currentTime);      
 
 		WaterShader.setVector3("u_LightDirection", LightDirection);
-
 		WaterShader.setVector3("u_AmbientLight", AmbientLight);
 		WaterShader.setVector3("u_DiffuseLight", DiffuseLight);
 		WaterShader.setVector3("u_SpecularLight", SpecularLight);
 		WaterShader.setFloat("u_Shininess", Shininess);
 		WaterShader.setFloat("u_SpecularStrength", SpecularStrength);
+		WaterShader.setVector3("u_WaterColor", WaterColor);
+
+
+		WaterShader.setFloat("u_AmplitudeBase", AmplitudeBase);
+		WaterShader.setFloat("u_AmplitudeMult",AmplitudeMult);
+		WaterShader.setFloat("u_FrequencyBase",FrequencyBase);
+		WaterShader.setFloat("u_FrequencyMult",FrequencyMult);
+
 		WaterShader.setInt("u_WaveCount", Waves.size());
 		WaterSSBO.Bind(1);
 
-
+		WaterShader.setInt("skybox", 0);
+		sb.BindSkyboxTexture();
+		 
 		WaterPlane.Draw();
+		  
+
+		// ---------------- SKYBOX ------------------
+
 		{
 			SkyboxShader->Use();
 			glm::mat4 view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
