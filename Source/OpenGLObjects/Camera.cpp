@@ -25,6 +25,11 @@ const glm::mat4& PerspectiveCamera::GetProjectionMatrix() const
 	return m_ProjectionMatrix;
 }
 
+const glm::vec3& PerspectiveCamera::GetCameraPos() const
+{
+	return m_CameraPos;
+}
+
 void PerspectiveCamera::ProcessInputs(GLFWwindow* window,const float dt)
 {
 	static float s_Yaw = -90.0f; // facing -Z by default

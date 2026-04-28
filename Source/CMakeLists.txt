@@ -31,7 +31,7 @@ add_executable(templateApp
 	"OpenGLObjects/Camera.h" 
 	"OpenGLObjects/Camera.cpp" 
 	"ExampleObjects/Plane.h" 
-	"ExampleObjects/Plane.cpp")
+	"ExampleObjects/Plane.cpp" "OpenGLObjects/SSBO.h" "OpenGLObjects/SSBO.cpp" "ExampleObjects/Skybox.h" "ExampleObjects/Skybox.cpp")
 
 
 target_link_libraries(templateApp PUBLIC

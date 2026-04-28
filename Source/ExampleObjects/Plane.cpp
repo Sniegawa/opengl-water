@@ -70,13 +70,26 @@ void Plane::Draw()
 	const int indexes = (m_Resolution.x - 1) * (m_Resolution.y - 1) * 6;
 
 	m_VAO.Bind();
-	glDrawElements(GL_LINES, indexes, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, indexes, GL_UNSIGNED_INT, 0);
 	m_VAO.Unbind();
 }
 
 void Plane::SetScale(float Scale)
 {
-	m_ModelMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(Scale));
+	m_Scale = glm::vec3(Scale);
+	RecalculateModelMatrix();
+}
+
+void Plane::SetPosition(glm::vec3 Position)
+{
+	m_Position = Position;
+	RecalculateModelMatrix();
+}
+
+void Plane::RecalculateModelMatrix()
+{
+	m_ModelMatrix = glm::translate(glm::mat4(1.0f), m_Position);
+	m_ModelMatrix = glm::scale(m_ModelMatrix, m_Scale);
 }
 
 void GeneratePlaneVertices(std::vector<unsigned int>& indices, std::vector<PlaneVertex>& vertices, const glm::ivec2 resolution)

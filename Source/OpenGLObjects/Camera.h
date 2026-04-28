@@ -16,9 +16,9 @@ public:
 
 	const glm::mat4& GetViewMatrix() const;
 	const glm::mat4& GetProjectionMatrix() const;
+	const glm::vec3& GetCameraPos() const;
 
 	void ProcessInputs(GLFWwindow* window, const float dt);
-
 private:
 	glm::mat4 m_ViewMatrix;
 	glm::mat4 m_ProjectionMatrix;
